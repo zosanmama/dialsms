@@ -62,30 +62,38 @@
 # app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
 
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # セッション用の秘密鍵（適当に変えてOK）
 
 @app.route('/webhook', methods=['POST'])
 def receive_data():
-    # JSON形式でも form形式でも対応できるように
+    # JSON形式も form形式も受け取れるように対応
     data = request.get_json() if request.is_json else request.form
 
-    caller = data.get('caller', 'No Data')
-    recipient = data.get('recipient', 'No Data')
-    call_time = data.get('call_time', 'No Data')
+    # データをsessionに格納
+    session['caller'] = data.get('caller', 'No Data')
+    session['recipient'] = data.get('recipient', 'No Data')
+    session['call_time'] = data.get('call_time', 'No Data')
 
     print("===== 📞 Webhook Data Received! =====")
-    print(f"Caller: {caller}")
-    print(f"Recipient: {recipient}")
-    print(f"Call Time: {call_time}")
+    print(f"Caller: {session['caller']}")
+    print(f"Recipient: {session['recipient']}")
+    print(f"Call Time: {session['call_time']}")
     print("======================================")
 
     return "Data received!", 200
 
 @app.route('/display')
 def display_data():
-    return render_template('display.html', caller=caller, recipient=recipient, call_time=call_time)
+    # セッションからデータを取り出して表示
+    return render_template(
+        'display.html',
+        caller=session.get('caller', 'No Data'),
+        recipient=session.get('recipient', 'No Data'),
+        call_time=session.get('call_time', 'No Data')
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
