@@ -1,0 +1,11 @@
+# Python関連の不要ファイル
+*.pyc
+__pycache__/
+.venv/
+env/
+
+# Node.js 関連の不要ファイル
+node_modules/
+npm-debug.log
+yarn.lock
+
