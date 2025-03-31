@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, session
+import os
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
