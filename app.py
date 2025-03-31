@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, session
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # セッション用の秘密鍵（適当に変えてOK）
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
