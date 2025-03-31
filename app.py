@@ -8,15 +8,15 @@ received_data = {}
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    global received_data  # グローバル変数を使用
+    global received_data
 
-    # JSON か form データを受け取る
     if request.is_json:
         data = request.get_json()
+        print("📌 JSON データを受信:", data)  # ← 追加
     else:
         data = request.form.to_dict()
+        print("📌 Form データを受信:", data)  # ← 追加
 
-    # 受信データをグローバル変数に保存
     received_data = {
         "caller": data.get('caller', 'Unknown'),
         "recipient": data.get('recipient', 'Unknown'),
