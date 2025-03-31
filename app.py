@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template
-
 import os
 
 app = Flask(__name__)
@@ -11,14 +10,11 @@ received_data = {}
 def webhook():
     global received_data  # グローバル変数を使用
 
-    content_type = request.headers.get('Content-Type')
-
-    if content_type == 'application/json':
+    # JSON か form データを受け取る
+    if request.is_json:
         data = request.get_json()
-    elif content_type == 'application/x-www-form-urlencoded':
-        data = request.form.to_dict()
     else:
-        return "Unsupported Content-Type", 400
+        data = request.form.to_dict()
 
     # 受信データをグローバル変数に保存
     received_data = {
