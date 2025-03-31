@@ -3,15 +3,16 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
+import json
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 # 📧 メール送信関数
 def send_email(caller, recipient, call_time):
-    sender_email = "junemomohanamaru@gmail.com"  # 送信元のGmailアドレス
-    receiver_email = "aikoy31@hotmail.com"  # 受信先のメールアドレス
-    password = "cmpa trxd hmxe jffy"  # Gmailの「アプリパスワード」を使う
+    sender_email = "your-email@gmail.com"  # 送信元のGmailアドレス
+    receiver_email = "receiver@example.com"  # 受信先のメールアドレス
+    password = "your-app-password"  # Gmailのアプリパスワード
 
     subject = "📞 新しいWebhook通知"
     body = f"""
@@ -38,14 +39,31 @@ def send_email(caller, recipient, call_time):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    if request.is_json:
-        data = request.get_json()
-    else:
-        data = request.form
+    # 📌 受信したデータの形式をログに記録
+    print("📌 受信したデータ (リクエストボディ):", request.data)
 
-    caller = data.get('caller', 'Unknown')
-    recipient = data.get('recipient', 'Unknown')
-    call_time = data.get('call_time', 'Unknown')
+    try:
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()  # form データを辞書に変換
+
+        print("📌 パースしたデータ:", data)  # データ構造を確認
+
+        # JSON形式の場合、ネストされているかチェック
+        if "results" in data:
+            parsed_data = json.loads(data["results"])
+            caller = parsed_data.get("caller", "Unknown")
+            recipient = parsed_data.get("recipient", "Unknown")
+            call_time = parsed_data.get("call_time", "Unknown")
+        else:
+            caller = data.get("caller", "Unknown")
+            recipient = data.get("recipient", "Unknown")
+            call_time = data.get("call_time", "Unknown")
+
+    except Exception as e:
+        print(f"⚠️ データ取得エラー: {e}")
+        return "Invalid Data Format", 400
 
     print("===== 📞 Webhook Data Received! =====")
     print(f"Caller: {caller}")
