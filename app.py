@@ -1,62 +1,72 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import os
-import sys 
-import json  # 追加
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')  # 環境変数から取得
 
-# セッションを使わずにデータを保存する
-received_data = {}
+# 📧 メール送信関数
+def send_email(caller, recipient, call_time):
+    sender_email = "junemomohanamaru@gmail.com"  # 送信元のGmailアドレス
+    receiver_email = "aiko@xoxzo.com"  # 受信先のメールアドレス
+    password = "cmpa trxd hmxe jffy"  # Gmailの「アプリパスワード」を使う
+
+    subject = "📞 新しいWebhook通知"
+    body = f"""
+    新しい通話データを受信しました！
+    
+    📌 Caller: {caller}
+    📌 Recipient: {recipient}
+    📌 Call Time: {call_time}
+    
+    """
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        print("📧 メール送信成功！")
+    except Exception as e:
+        print(f"⚠️ メール送信エラー: {e}")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    global received_data
-
     if request.is_json:
         data = request.get_json()
-        print("📌 JSON データを受信:", data)
     else:
-        data = request.form.to_dict()
-        print("📌 Form データを受信:", data)
+        data = request.form
 
-    sys.stdout.flush()  # ログを即時出力
-
-    # 'results' の中に JSON 文字列が入っている場合は、パースして取得
-    if 'results' in data:
-        try:
-            parsed_data = json.loads(data['results'])
-        except json.JSONDecodeError:
-            print("❌ JSON デコードエラー: 無効なフォーマット")
-            parsed_data = {}  # エラー時は空の辞書
-
-    else:
-        parsed_data = data  # 通常のキー値データ
-
-    received_data = {
-        "caller": parsed_data.get('caller', 'Unknown'),
-        "recipient": parsed_data.get('recipient', 'Unknown'),
-        "call_time": parsed_data.get('call_time', 'Unknown')
-    }
+    session['caller'] = data.get('caller', 'Unknown')
+    session['recipient'] = data.get('recipient', 'Unknown')
+    session['call_time'] = data.get('call_time', 'Unknown')
 
     print("===== 📞 Webhook Data Received! =====")
-    print(f"Caller: {received_data['caller']}")
-    print(f"Recipient: {received_data['recipient']}")
-    print(f"Call Time: {received_data['call_time']}")
+    print(f"Caller: {session['caller']}")
+    print(f"Recipient: {session['recipient']}")
+    print(f"Call Time: {session['call_time']}")
     print("======================================")
 
-    sys.stdout.flush()  # これも追加
+    # 📧 メール送信
+    send_email(session['caller'], session['recipient'], session['call_time'])
 
     return "Data received!", 200
-
 
 @app.route('/display')
 def display_data():
     return render_template(
         'display.html',
-        caller=received_data.get('caller', 'No Data'),
-        recipient=received_data.get('recipient', 'No Data'),
-        call_time=received_data.get('call_time', 'No Data')
+        caller=session.get('caller', 'No Data'),
+        recipient=session.get('recipient', 'No Data'),
+        call_time=session.get('call_time', 'No Data')
     )
 
-if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+import os
+app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
