@@ -1,12 +1,16 @@
-from flask import Flask, request, render_template, session
+from flask import Flask, request, render_template
 
-import os  # os を先にインポートする
+import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')  # セッション用の秘密鍵
+
+# セッションを使わずにデータを保存する
+received_data = {}
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    global received_data  # グローバル変数を使用
+
     content_type = request.headers.get('Content-Type')
 
     if content_type == 'application/json':
@@ -16,14 +20,17 @@ def webhook():
     else:
         return "Unsupported Content-Type", 400
 
-    session['caller'] = data.get('caller', 'Unknown')
-    session['recipient'] = data.get('recipient', 'Unknown')
-    session['call_time'] = data.get('call_time', 'Unknown')
+    # 受信データをグローバル変数に保存
+    received_data = {
+        "caller": data.get('caller', 'Unknown'),
+        "recipient": data.get('recipient', 'Unknown'),
+        "call_time": data.get('call_time', 'Unknown')
+    }
 
     print("===== 📞 Webhook Data Received! =====")
-    print(f"Caller: {session['caller']}")
-    print(f"Recipient: {session['recipient']}")
-    print(f"Call Time: {session['call_time']}")
+    print(f"Caller: {received_data['caller']}")
+    print(f"Recipient: {received_data['recipient']}")
+    print(f"Call Time: {received_data['call_time']}")
     print("======================================")
 
     return "Data received!", 200
@@ -32,9 +39,9 @@ def webhook():
 def display_data():
     return render_template(
         'display.html',
-        caller=session.get('caller', 'No Data'),
-        recipient=session.get('recipient', 'No Data'),
-        call_time=session.get('call_time', 'No Data')
+        caller=received_data.get('caller', 'No Data'),
+        recipient=received_data.get('recipient', 'No Data'),
+        call_time=received_data.get('call_time', 'No Data')
     )
 
 if __name__ == '__main__':
