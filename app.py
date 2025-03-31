@@ -1,10 +1,12 @@
 from flask import Flask, request, render_template
 import os
+import sys 
 
 app = Flask(__name__)
 
 # セッションを使わずにデータを保存する
 received_data = {}
+ # 追加
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -12,10 +14,12 @@ def webhook():
 
     if request.is_json:
         data = request.get_json()
-        print("📌 JSON データを受信:", data)  # ← 追加
+        print("📌 JSON データを受信:", data)
     else:
         data = request.form.to_dict()
-        print("📌 Form データを受信:", data)  # ← 追加
+        print("📌 Form データを受信:", data)
+
+    sys.stdout.flush()  # バッファをクリアして即座にログ出力
 
     received_data = {
         "caller": data.get('caller', 'Unknown'),
@@ -29,7 +33,10 @@ def webhook():
     print(f"Call Time: {received_data['call_time']}")
     print("======================================")
 
+    sys.stdout.flush()  # これも追加
+
     return "Data received!", 200
+
 
 @app.route('/display')
 def display_data():
