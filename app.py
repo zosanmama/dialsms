@@ -7,8 +7,46 @@ app = Flask(__name__)
 
 # セッションを使わずにデータを保存する
 received_data = {}
- # 追加
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    global received_data
+
+    if request.is_json:
+        data = request.get_json()
+        print("📌 JSON データを受信:", data)
+    else:
+        data = request.form.to_dict()
+        print("📌 Form データを受信:", data)
+
+    sys.stdout.flush()  # ログを即時出力
+
+    # 'results' の中に JSON 文字列が入っている場合は、パースして取得
+    if 'results' in data:
+        try:
+            parsed_data = json.loads(data['results'])
+        except json.JSONDecodeError:
+            print("❌ JSON デコードエラー: 無効なフォーマット")
+            parsed_data = {}  # エラー時は空の辞書
+
+    else:
+        parsed_data = data  # 通常のキー値データ
+
+    received_data = {
+        "caller": parsed_data.get('caller', 'Unknown'),
+        "recipient": parsed_data.get('recipient', 'Unknown'),
+        "call_time": parsed_data.get('call_time', 'Unknown')
+    }
+
+    print("===== 📞 Webhook Data Received! =====")
+    print(f"Caller: {received_data['caller']}")
+    print(f"Recipient: {received_data['recipient']}")
+    print(f"Call Time: {received_data['call_time']}")
+    print("======================================")
+
+    sys.stdout.flush()  # これも追加
+
+    return "Data received!", 200
 
 
 @app.route('/display')
