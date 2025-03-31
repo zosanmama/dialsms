@@ -10,9 +10,9 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
 # 📧 メール送信関数
 def send_email(caller, recipient, call_time):
-    sender_email = "your-email@gmail.com"  # 送信元のGmailアドレス
-    receiver_email = "receiver@example.com"  # 受信先のメールアドレス
-    password = "your-app-password"  # Gmailのアプリパスワード
+    sender_email = "junemomohanamaru@gmail.com"  # 送信元のGmailアドレス
+    receiver_email = "aikoy31@hotmail.com"  # 受信先のメールアドレス
+    password = "cmpa trxd hmxe jffy"  # Gmailの「アプリパスワード」を使う
 
     subject = "📞 新しいWebhook通知"
     body = f"""
