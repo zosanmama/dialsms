@@ -4,9 +4,28 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 import json
+from datetime import datetime
+import pytz
+
+def format_timestamp_jst(timestamp):
+    try:
+        dt_utc = datetime.utcfromtimestamp(float(timestamp))
+        dt_jst = dt_utc.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Asia/Tokyo"))
+        return dt_jst.strftime('%Y-%m-%d %H:%M:%S')
+    except Exception as e:
+        print(f"⚠️ タイムスタンプ変換エラー: {e}")
+        return "Unknown"
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
+
+def format_timestamp(timestamp):
+    try:
+        dt = datetime.utcfromtimestamp(float(timestamp))  # UTC時間に変換
+        return dt.strftime('%Y-%m-%d %H:%M:%S')  # 人間が読める形式
+    except Exception as e:
+        print(f"⚠️ タイムスタンプ変換エラー: {e}")
+        return "Unknown"
 
 # 📧 メール送信関数
 def send_email(caller, recipient, call_time):
@@ -65,14 +84,17 @@ def webhook():
         print(f"⚠️ データ取得エラー: {e}")
         return "Invalid Data Format", 400
 
+    # 🔹 タイムスタンプを変換
+    formatted_time = format_timestamp(call_time)
+
     print("===== 📞 Webhook Data Received! =====")
     print(f"Caller: {caller}")
     print(f"Recipient: {recipient}")
-    print(f"Call Time: {call_time}")
+    print(f"Call Time: {formatted_time}")
     print("======================================")
 
     # 📧 メール送信（データを直接渡す）
-    send_email(caller, recipient, call_time)
+    send_email(caller, recipient, formatted_time)
 
     return "Data received!", 200
 
