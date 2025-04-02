@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
 import json
+import pytz
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
@@ -12,8 +13,9 @@ from datetime import datetime
 
 def format_timestamp(timestamp):
     try:
-        dt = datetime.utcfromtimestamp(float(timestamp))  # UTC時間に変換
-        return dt.strftime('%Y-%m-%d %H:%M:%S')  # 人間が読める形式
+        dt_utc = datetime.utcfromtimestamp(float(timestamp))
+        dt_jst = dt_utc.replace(tzinfo=pytz.utc).astimezone(pytz.timezone("Asia/Tokyo"))
+        return dt_jst.strftime('%Y-%m-%d %H:%M:%S')
     except Exception as e:
         print(f"⚠️ タイムスタンプ変換エラー: {e}")
         return "Unknown"
