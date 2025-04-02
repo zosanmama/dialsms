@@ -48,8 +48,9 @@ def display_data():
     )
 
 def send_email(caller, recipient, call_time):
-    sender_email = "your_email@example.com"
-    receiver_email = "notify@example.com"
+    sender_email = "junemomohanamaru@gmail.com"  # 送信元のGmailアドレス
+    receiver_email = "aikoy31@hotmail.com"  # 受信先のメールアドレス
+    password = "cmpa trxd hmxe jffy"  # Gmailの「アプリパスワード」を使う
     subject = "📞 New Call Notification"
     body = f"Caller: {caller}\nRecipient: {recipient}\nCall Time: {call_time}"
 
