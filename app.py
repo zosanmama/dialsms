@@ -8,6 +8,16 @@ import json
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key')
 
+from datetime import datetime
+
+def format_timestamp(timestamp):
+    try:
+        dt = datetime.utcfromtimestamp(float(timestamp))  # UTC時間に変換
+        return dt.strftime('%Y-%m-%d %H:%M:%S')  # 人間が読める形式
+    except Exception as e:
+        print(f"⚠️ タイムスタンプ変換エラー: {e}")
+        return "Unknown"
+
 # 📧 メール送信関数
 def send_email(caller, recipient, call_time):
     sender_email = "junemomohanamaru@gmail.com"  # 送信元のGmailアドレス
@@ -65,14 +75,17 @@ def webhook():
         print(f"⚠️ データ取得エラー: {e}")
         return "Invalid Data Format", 400
 
+    # 🔹 タイムスタンプを変換
+    formatted_time = format_timestamp(call_time)
+
     print("===== 📞 Webhook Data Received! =====")
     print(f"Caller: {caller}")
     print(f"Recipient: {recipient}")
-    print(f"Call Time: {call_time}")
+    print(f"Call Time: {formatted_time}")  # 🔹 変換後の時間を表示
     print("======================================")
 
-    # 📧 メール送信（データを直接渡す）
-    send_email(caller, recipient, call_time)
+    # 📧 メール送信（変換後の時間を使う）
+    send_email(caller, recipient, formatted_time)
 
     return "Data received!", 200
 
